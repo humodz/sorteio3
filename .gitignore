@@ -1,0 +1,21 @@
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDEs and editors
+.idea
+.project
+.classpath
+.c9
+.settings
+.vscode
+*.launch
+*.sublime-workspace
+.vscode
+
+# Secrets
+.env
+
+# Node
+node_modules
+yarn-error.log
