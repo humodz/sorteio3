@@ -10,7 +10,7 @@ services:
       - redis
     build: .
     ports:
-      - "8181:8080"
+      - "${EXPOSED_PORT}:8080"
     networks:
       - network1
   redis:

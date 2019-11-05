@@ -4,10 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "docker:build": "docker build . -t localhost:5000/sorteio3",
-    "docker:push": "docker push localhost:5000/sorteio3",
-    "docker:run": "docker run -d -p 8080:8080 --name sorteio3 localhost:5000/sorteio3",
-    "ssh:tunnel": "ssh -v -N -T -L 5000:localhost:5000",
+    "ssh:transfer-image": "docker save localhost:5000/sorteio3 | ssh -C $SSH_TARGET docker load",
     "lint": "tslint -p tsconfig.json",
     "build": "tsc",
     "build:watch": "tsc --watch",
