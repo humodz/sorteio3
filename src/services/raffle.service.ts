@@ -47,12 +47,14 @@ export class RaffleService {
   async raffle(body: SlashCommandRequest): Promise<SlashCommandResponse> {
     const args = this.parseArguments(body.text);
 
-    if (args.invalid) {
-      return respond({ text: `Link do post ou id do sorteio não é válido: ${args.invalid}` });
-    }
+    console.log({ args });
 
     if (args.isHelp) {
       return respond({ text: this.helpMessage(body.command) });
+    }
+
+    if (args.invalid) {
+      return respond({ text: `Link do post ou id do sorteio não é válido: ${args.invalid}` });
     }
 
     const { postId, previousWinners } = await this.checkExistingRaffle(args.postOrRaffle);
@@ -107,6 +109,8 @@ export class RaffleService {
     const continueRaffleId = await this.saveRaffle(postId, previousWinners);
     const reactionsString = !args.wantedReactions.length ? 'any' : args.wantedReactions.map(r => `:${r}:`).join(',');
 
+    const previousWinnersUsers = await this.mattermostService.findManyUsersById(previousWinners);
+
     return respond({
       text: lines.join('\n'),
       response_type: args.isPublic ? 'in_channel' : 'ephemeral',
@@ -118,6 +122,8 @@ export class RaffleService {
           `${body.command} ${continueRaffleId} ${args.prize} ${args.numberOfWinners} ${reactionsString} ${args.isPublic ? 'public' : ''}`,
           '```',
           'Pessoas que já ganharam não serão sorteadas novamente.',
+          'Ganhadores até agora (pessoas que não participarão mais):',
+          ...previousWinnersUsers.map((winner, i) => `${i + 1}. @${winner.username}`),
         ].join('\n'),
       }]
     });

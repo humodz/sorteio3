@@ -1,37 +1,52 @@
 import { ConfigService } from '@/services/config.service';
 import { ErrorRequestHandler, Handler } from 'express';
-import { randomItem } from '@/utils';
+import { prettyFormatErrors, randomItem } from '@/utils';
+import { HttpException } from '@/errors';
+import { SlashCommandRequestDto } from '@/dto/slash-command.dto';
 
 export class MiddlewareService {
   constructor(
     private readonly configService: ConfigService
-  ) {
-  }
+  ) {}
 
-  validateSlashCommandBody() {
-    return 'TODO';
+  validateSlashCommandBody(): Handler {
+    return (req) => {
+      const { instance, errors } = SlashCommandRequestDto.validate(req.body);
+
+      if (errors.length) {
+        throw new HttpException({
+          status: 400,
+          message: 'Bad Request',
+          response: prettyFormatErrors(errors),
+        });
+      }
+
+      req.body = instance;
+    };
   }
 
   verifyAccessToken(): Handler {
     const { allowedAccessTokens } = this.configService;
 
-    return (req, res, next) => {
+    return (req) => {
       const token = req.body.token as string;
 
       if (!token || !allowedAccessTokens.includes(token)) {
-        res.status(401).send('Unauthorized');
-      } else {
-        next();
+        throw new HttpException({ status: 401, message: 'Unauthorized' });
       }
     };
   }
 
   sendExceptionAsChatMessage(): ErrorRequestHandler {
     const { emojiBaseUrl } = this.configService.mattermost;
+    const iconIds = ['2049-fe0f', '1f525', '1f4a5', '1f4a3', '2620-fe0f', '1f4a9', '1f494', '1f198'];
+    const iconUrls = iconIds.map(id => `${emojiBaseUrl}/${id}.png`);
 
     return (err, req, res) => {
-      const iconIds = ['2049-fe0f', '1f525', '1f4a5', '1f4a3', '2620-fe0f', '1f4a9', '1f494', '1f198'];
-      const iconUrls = iconIds.map(id => `${emojiBaseUrl}/${id}.png`);
+      if (HttpException.isHttp(err)) {
+        res.status(err.getStatus()).json(err.getResponse());
+        return;
+      }
 
       const command = req && req.body && req.body.command;
       const message = err && err.message;

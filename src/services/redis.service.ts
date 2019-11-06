@@ -3,15 +3,23 @@ import { createClient, RedisClient } from 'redis';
 
 export class RedisService {
   private client: RedisClient;
+  private warned = false;
 
   constructor(
     private readonly configService: ConfigService,
+    private readonly options = { warnOnce: true },
   ) {
     this.client = createClient({
       host: configService.redis.host,
       port: configService.redis.port,
     });
-    this.client.on('error', console.error);
+
+    this.client.on('error', err => {
+      if (!this.warned || !this.options.warnOnce) {
+        console.error(err);
+        this.warned = true;
+      }
+    });
   }
 
   async set(key: string, value: any) {

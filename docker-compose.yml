@@ -1,18 +1,19 @@
 version: '3'
 
 services:
-  app:
-    image: localhost:5000/sorteio3
-    env_file: .env
-    environment:
-      REDIS_HOST: redis
-    depends_on:
-      - redis
-    build: .
-    ports:
-      - "${EXPOSED_PORT}:8080"
-    networks:
-      - network1
+#  app:
+#    image: localhost:5000/sorteio3
+#    env_file: .env
+#    environment:
+#      PORT: 8080
+#      REDIS_HOST: redis
+#    depends_on:
+#      - redis
+#    build: .
+#    ports:
+#      - "${EXPOSED_PORT}:8080"
+#    networks:
+#      - network1
   redis:
     image: redis
     command: ['redis-server', '--appendonly', 'yes']
