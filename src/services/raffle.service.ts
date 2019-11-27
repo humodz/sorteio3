@@ -65,11 +65,22 @@ export class RaffleService {
 
     let postReactions = await this.mattermostService.listPostReactions(postId);
 
+    console.log({
+      wantedReactions: args.wantedReactions,
+      allReactions: postReactions.map(reaction => ({ emoji: reaction.emoji_name, userId: reaction.user_id })),
+      previousWinners,
+    });
+
     if (args.wantedReactions.length) {
       postReactions = postReactions.filter(reaction => args.wantedReactions.includes(reaction.emoji_name));
     }
 
     const userIds = this.getParticipants(postReactions, previousWinners);
+
+    console.log({
+      participants: userIds,
+      filteredReactions: postReactions.map(reaction => ({ emoji: reaction.emoji_name, userId: reaction.user_id })),
+    });
 
     if (!userIds.length) {
       return respond({ text: 'Nenhum usuário reagiu.' });
@@ -117,6 +128,7 @@ export class RaffleService {
       extra_responses: [{
         response_type: 'ephemeral',
         text: [
+          '**Esta é uma mensagem temporária que desaparecerá automaticamente**',
           'Para continuar o sorteio com as mesmas opções, use o seguinte comando:',
           '```',
           `${body.command} ${continueRaffleId} ${args.prize} ${args.numberOfWinners} ${reactionsString} ${args.isPublic ? 'public' : ''}`,
@@ -147,7 +159,7 @@ export class RaffleService {
       };
     } else {
       const existing = await this.redisService.get(postOrRaffle.id);
-      return existing || { postId: null, previousWinners: [] };
+      return existing || { postId: null, previousWinners: [] as string[] };
     }
   }
 

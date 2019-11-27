@@ -14,11 +14,13 @@ export class MiddlewareService {
       const { instance, errors } = SlashCommandRequestDto.validate(req.body);
 
       if (errors.length) {
-        throw new HttpException({
+        const result = {
           status: 400,
           message: 'Bad Request',
           response: prettyFormatErrors(errors),
-        });
+        };
+
+        throw new HttpException(result);
       }
 
       req.body = instance;
